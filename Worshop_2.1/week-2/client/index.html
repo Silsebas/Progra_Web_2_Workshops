@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 2 - Consume API</title>
+  <script>
+ // Función para LISTAR (GET)
+    function getCourses() {
+      // course para ver todos
+      fetch('http://localhost:3001/course') 
+        .then(response => response.json())
+        .then(data => {
+          // Mostramos los datos en el div de resultado
+          document.getElementById('result').innerHTML = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Función para CREAR (POST)
+    function createCourse() {
+      // Obtener los valores para el nuevo curso
+      const name = document.getElementById('name').value;
+      const credits = document.getElementById('credits').value;
+
+      // Petición POST
+      fetch('http://localhost:3001/course', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, credits: credits })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Mostramos el resultado y recargar la lista
+        document.getElementById('result').innerHTML = "Creado con éxito:\n" + JSON.stringify(data, null, 2);
+        getCourses(); // llamada para ver el nuevo curso
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Función para ACTUALIZAR (PATCH)
+    function updateCourse() {
+      const id = document.getElementById('courseId').value;
+      const name = document.getElementById('name').value;
+      const credits = document.getElementById('credits').value;
+
+      // Validación
+      if(!id) { alert("¡Necesitas poner el ID para actualizar!"); return; }
+
+      fetch(`http://localhost:3001/course/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, credits: credits })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Mostramos el resultado y recargar la lista
+        document.getElementById('result').innerHTML = "Actualizado:\n" + JSON.stringify(data, null, 2);
+        getCourses(); 
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Función para BORRAR (DELETE)
+    function deleteCourse() {
+      const id = document.getElementById('courseId').value;
+
+      if(!id) { alert("¡Necesitas poner el ID para borrar!"); return; }
+
+      // la ruta /delete/:id
+      fetch(`http://localhost:3001/delete/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.text()) // devuelve texto en el delete, no JSON
+      .then(data => {
+        // Mostramos el resultado
+        document.getElementById('result').innerHTML = data;
+        getCourses(); 
+      })
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Gestión de Cursos (UTN API)</h1>
+
+  <div style="margin-bottom: 20px;">
+    <input type="text" id="courseId" placeholder="ID (Solo para borrar/editar)">
+    <br><br>
+    <input type="text" id="name" placeholder="Nombre del Curso (ej. Programación)">
+    <input type="number" id="credits" placeholder="Créditos (ej. 4)">
+  </div>
+
+  <button onclick="getCourses()">Listar Cursos</button>
+  <button onclick="createCourse()">Crear Curso</button>
+  <button onclick="updateCourse()">Actualizar</button>
+  <button onclick="deleteCourse()">Borrar</button>
+
+  <h3>Resultados:</h3>
+  <pre id="result" style="background: #f4f4f4; padding: 10px;"></pre>
+</body>
+
+</html>
