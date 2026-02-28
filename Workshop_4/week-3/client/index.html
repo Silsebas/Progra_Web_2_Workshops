@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 2 & 3 - Consume API</title>
+ <script>
+    // NOTA: Definimos la base de la API para no repetir "http://localhost:3001/api"
+    const API_BASE = "http://localhost:3001/api";
+
+    // NOTA: Verificamos si el usuario tiene token. Si no, lo mandamos al login.
+    const token = sessionStorage.getItem("authToken");
+    if (!token) {
+        alert("No estás autorizado. Por favor inicia sesión.");
+        window.location.href = "login.html";
+    }
+
+    // NOTA: Función para cerrar sesión
+    function logout() {
+        sessionStorage.removeItem("authToken");
+        window.location.href = "login.html";
+    }
+
+    // LOGICA PARA EL CRUD DE PROFESORES
+    function getProfessors() {
+      // NOTA: Cambiamos la URL a /teachers y agregamos el header de Autorización
+      fetch(`${API_BASE}/teachers`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+      }) 
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('resultProf').innerHTML = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function createProfessor() {
+      const nombre = document.getElementById('profName').value;
+      const apellidos = document.getElementById('profLastname').value;
+      const cedula = document.getElementById('profCedula').value;
+      const edad = document.getElementById('profAge').value;
+
+      // NOTA: Enviamos el token en los headers para que el servidor nos deje pasar
+      fetch(`${API_BASE}/teachers`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nombre: nombre, apellidos: apellidos, cedula: cedula, edad: edad })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('resultProf').innerHTML = "¡Profesor creado con éxito!\n" + JSON.stringify(data, null, 2);
+        getProfessors(); 
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Función para ACTUALIZAR Profesor (PUT)
+    function updateProfessor() {
+    // 1. Capturamos el ID de la primer parametro
+    const id = document.getElementById('profId').value;
+    
+    // 2. Capturamos los datos nuevos
+    const nombre = document.getElementById('profName').value;
+    const apellidos = document.getElementById('profLastname').value;
+    const cedula = document.getElementById('profCedula').value;
+    const edad = document.getElementById('profAge').value;
+
+    // Validación de seguridad
+    if(!id) { 
+        alert("¡Necesitas poner el ID del profesor para actualizar!"); 
+        return; 
+    }
+
+    // 3. Hacemos el fetch con método PUT
+    fetch(`${API_BASE}/teachers/${id}`, {
+        method: 'PUT',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nombre: nombre, apellidos: apellidos, cedula: cedula, edad: edad })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('resultProf').innerHTML = "¡Actualizado con éxito!\n" + JSON.stringify(data, null, 2);
+        getProfessors(); // Recargamos la lista
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // LOGICA PARA EL CRUD DE CURSOS
+    function getCourses() {
+      // NOTA: Agregamos Authorization header
+      fetch(`${API_BASE}/courses`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+      }) 
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('resultCourse').innerHTML = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function createCourse() {
+      const nombre = document.getElementById('courseName').value;
+      const codigo = document.getElementById('courseCode').value;
+      const descripcion = document.getElementById('courseDesc').value;
+      const idProfesor = document.getElementById('courseProfId').value;
+
+      fetch(`${API_BASE}/courses`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nombre: nombre, codigo: codigo, descripcion: descripcion, idProfesor: idProfesor })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('resultCourse').innerHTML = "¡Curso creado con éxito!\n" + JSON.stringify(data, null, 2);
+        getCourses(); 
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+// Función para ACTUALIZAR curso (PUT)
+    function updateCourse() {
+    // 1. Capturamos el ID de la primer parametro
+    const id = document.getElementById('courseId').value;
+    
+    // 2. Capturamos los datos nuevos
+    const nombre = document.getElementById('courseName').value;
+    const codigo = document.getElementById('courseCode').value;
+    const descripcion = document.getElementById('courseDesc').value;
+    const idProfesor = document.getElementById('courseProfId').value;
+
+    // Validación de seguridad
+    if(!id) { 
+        alert("¡Necesitas poner el ID del curso para actualizar!"); 
+        return; 
+    }
+
+    // 3. Hacemos el fetch con método PUT
+    fetch(`${API_BASE}/courses/${id}`, {
+        method: 'PUT',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nombre: nombre, codigo: codigo, descripcion: descripcion, idProfesor: idProfesor })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('resultCourse').innerHTML = "¡Actualizado con éxito!\n" + JSON.stringify(data, null, 2);
+        getCourses(); // Recargamos la lista
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Función para BORRAR Profesor (DELETE)
+    function deleteProfessor() {
+        // Solo ocupamos el ID
+        const id = document.getElementById('profId').value;
+
+        if(!id) { 
+            alert("¡Necesitas poner el ID del profesor para borrarlo!"); 
+            return; 
+        }
+
+        // NOTA: DELETE también necesita autorización
+        fetch(`${API_BASE}/teachers/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('resultProf').innerHTML = data.message;
+            getProfessors(); // Recargamos la lista para ver que ya desapareció
+        })
+        .catch(error => console.error('Error:', error));
+    }   
+
+    // Función para BORRAR Curso (DELETE)
+    function deleteCourse() {
+        // Solo ocupamos el ID
+        const id = document.getElementById('courseId').value;
+
+        if(!id) { 
+            alert("¡Necesitas poner el ID del curso para borrarlo!"); 
+            return; 
+        }
+
+        fetch(`${API_BASE}/courses/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('resultCourse').innerHTML = data.message;
+            getCourses(); // Recargamos la lista para ver que ya desapareció
+        })
+        .catch(error => console.error('Error:', error));
+    }   
+</script>
+</head>
+
+<body>
+  <!-- NOTA: Botón para salir del sistema -->
+  <button onclick="logout()" style="background-color: #dc3545; color: white; float: right;">Cerrar Sesión</button>
+  <h1>Sistema de Gestión Universitaria</h1>
+
+  <div class="section">
+    <h2>1. Gestión de Profesores</h2>
+    <input type="text" id="profId" placeholder="ID (Solo para editar/borrar)">
+    <hr>
+    <input type="text" id="profName" placeholder="Nombre">
+    <input type="text" id="profLastname" placeholder="Apellidos">
+    <br>
+    <input type="text" id="profCedula" placeholder="Cédula">
+    <input type="number" id="profAge" placeholder="Edad">
+    <br><br>
+    
+    <button onclick="getProfessors()">Listar Profesores (GET)</button>
+    <button onclick="createProfessor()" style="background-color: green;">Crear Profesor (POST)</button>
+    <button onclick="updateProfessor()" style="background-color: orange;">Actualizar (PUT)</button>
+    <button onclick="deleteProfessor()" style="background-color: red;">Borrar (DELETE)</button>
+
+    <h3>Resultado Profesores:</h3>
+    <pre id="resultProf">...</pre>
+  </div>
+
+  <div class="section">
+    <h2>2. Gestión de Cursos</h2>
+    <input type="text" id="courseId" placeholder="ID Curso (Solo editar/borrar)">
+    <hr>
+    <input type="text" id="courseName" placeholder="Nombre del Curso">
+    <input type="text" id="courseCode" placeholder="Código (ej. MAT-01)">
+    <br>
+    <input type="text" id="courseDesc" placeholder="Descripción">
+    <input type="text" id="courseProfId" placeholder="ID del Profesor Asignado">
+    <br><br>
+
+    <button onclick="getCourses()">Listar Cursos (GET)</button>
+    <button onclick="createCourse()" style="background-color: green;">Crear Curso (POST)</button>
+    <button onclick="updateCourse()" style="background-color: orange;">Actualizar (PUT)</button>
+    <button onclick="deleteCourse()" style="background-color: red;">Borrar (DELETE)</button>
+
+    <h3>Resultado Cursos:</h3>
+    <pre id="resultCourse">...</pre>
+  </div>
+
+</body>
+</html>
