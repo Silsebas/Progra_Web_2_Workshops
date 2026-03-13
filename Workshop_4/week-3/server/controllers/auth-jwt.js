@@ -35,8 +35,8 @@ const generateToken = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // main difference with token based auth is that we are using a secret key to sign the token
-    // and the a payload is stored with the token
+    // a diferencia con la autenticación basada en tokens, estamos utilizando una clave secreta para firmar el token
+    // y se almacena una carga útil con el token
     const payload = { userId: user._id, email: user.email };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
