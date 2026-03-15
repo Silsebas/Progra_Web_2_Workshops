@@ -1,9 +1,10 @@
 import React from 'react';
 
-const VehicleCard = () => {
+// Recibimos "verDetalles" como prop, que será la función que cambie la pantalla
+const VehicleCard = ({ verDetalles }) => {
   return (
     <div className="vehicle-card">
-      <img src="https://via.placeholder.com/300x200?text=Foto+del+Auto" alt="Auto" className="vehicle-img" />
+      <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800" alt="Auto" className="vehicle-img" />
       
       <div className="vehicle-info">
         <h4>Toyota Hilux 2021</h4>
@@ -12,10 +13,13 @@ const VehicleCard = () => {
         <ul className="details">
           <li><strong>Motor:</strong> 2.8L</li>
           <li><strong>Transmisión:</strong> Manual</li>
-          <li><strong>Combustible:</strong> Diesel</li>
+          <li><strong>Kilometraje:</strong> 45,000 km</li>
         </ul>
         
-        <button className="btn-details">Ver Detalles</button>
+        {/* Este botón activará la vista de detalles */}
+        <button onClick={verDetalles} className="btn-details">
+          Ver Vehículo
+        </button>
       </div>
     </div>
   );
