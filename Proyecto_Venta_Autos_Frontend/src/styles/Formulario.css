@@ -1,5 +1,22 @@
 /* src/styles/Formulario.css */
 
+.btn-back {
+  background: none;
+  border: none;
+  color: #3498db;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  text-align: left;
+  display: block;
+}
+
+.btn-back:hover {
+  text-decoration: underline;
+  color: #2980b9;
+}
+
 .pantalla-completa {
   display: flex;
   justify-content: center;

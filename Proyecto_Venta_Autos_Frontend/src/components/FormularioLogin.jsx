@@ -1,39 +1,39 @@
 // src/components/FormularioLogin.jsx
 import React, { useState } from 'react';
-import '../styles/Formulario.css'; // reutilizamos los estilos del formulario de registro
+import '../styles/Formulario.css'; 
 import { FiMail, FiLock, FiEyeOff } from 'react-icons/fi';
 
-const FormularioLogin = ({ cambiarVista }) => {
-  // Solo necesitamos guardar el correo y la contraseña
+const FormularioLogin = ({ cambiarVista, volverCatalogo }) => {
+  // 1. Estados para guardar el correo y la contraseña
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-const manejarEnvio = async (e) => {
+  // 2. Función para conectar con el backend
+  const manejarEnvio = async (e) => {
     e.preventDefault();
     
     try {
-      // Apuntamos a la ruta de login en el backend
       const respuesta = await fetch('http://localhost:4000/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Aquí enviamos solo el correo y la contraseña
         body: JSON.stringify({ email, password }), 
       });
 
       const datos = await respuesta.json();
 
-      // Revisamos si las credenciales son correctas
       if (respuesta.ok) {
         alert('¡Login exitoso! Bienvenido');
-        console.log('Token recibido:', datos.token); // El backend nos devuelve un token de acceso
+        console.log('Token recibido:', datos.token); 
         
         // Limpiamos los campos
         setEmail('');
         setPassword('');
+        
+        // ¡Magia! Si el login es correcto, lo mandamos al catálogo automáticamente
+        volverCatalogo(); 
       } else {
-        // Si la contraseña está mal o el correo no existe
         alert('Error: ' + (datos.mensaje || 'Credenciales incorrectas o usuario no registrado'));
       }
 
@@ -43,9 +43,16 @@ const manejarEnvio = async (e) => {
     }
   };
 
+  // 3. Lo que dibujamos en pantalla
   return (
     <div className="pantalla-completa">
       <form className="contenedor-formulario" onSubmit={manejarEnvio}>
+        
+        {/* BOTÓN PARA VOLVER AL CATÁLOGO */}
+        <button type="button" onClick={volverCatalogo} className="btn-back" style={{ alignSelf: 'flex-start', marginBottom: '20px' }}>
+          ⬅ Volver al Catálogo
+        </button>
+
         <p className="texto-subtitulo">Welcome back</p>
         <h1 className="texto-titulo">Sign In to InsideBox</h1> 
 
@@ -85,7 +92,7 @@ const manejarEnvio = async (e) => {
         <button type="submit" className="boton-enviar">Sign In</button> 
         
         <div className="contenedor-enlace">
-          <p>Don't have an account? <span className="texto-enlace" onClick={cambiarVista}>Sign Up</span></p>
+          <p>Don't have an account? <span className="texto-enlace" onClick={cambiarVista} style={{cursor: 'pointer'}}>Sign Up</span></p>
         </div>
       </form>
     </div>

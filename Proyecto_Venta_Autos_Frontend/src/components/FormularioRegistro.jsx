@@ -1,43 +1,36 @@
 // src/components/FormularioRegistro.jsx
 import React, { useState } from 'react';
-import '../styles/Formulario.css'; // Traemos los estilos que acabas de crear
-import { FiMail, FiLock, FiEyeOff } from 'react-icons/fi'; // Traemos los iconos
+import '../styles/Formulario.css'; 
+import { FiMail, FiLock, FiEyeOff } from 'react-icons/fi'; 
 
-const FormularioRegistro = ({ cambiarVista }) => {
-  // Aquí guardaremos lo que el usuario escriba
+const FormularioRegistro = ({ cambiarVista, volverCatalogo }) => {
+  // 1. Estados para guardar lo que el usuario escriba
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-// Agregamos la palabra async porque el envío de datos toma tiempo
+  // 2. Función para enviar los datos al Backend
   const manejarEnvio = async (e) => {
     e.preventDefault(); 
     
     try {
-      // Construimos el puente hacia el Backend (puerto 4000) enviando la ruta y los datos que el usuario escribió
       const respuesta = await fetch('http://localhost:4000/api/users/register', {
-        method: 'POST', // Método para enviar datos nuevos
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // Le decimos que enviamos datos en formato JSON
+          'Content-Type': 'application/json',
         },
-        // Empacamos el nombre, email y password que el usuario escribió
         body: JSON.stringify({ name: nombre, email, password }), 
       });
 
-      // 2. Esperamos la respuesta del servidor
       const datos = await respuesta.json();
 
-      // 3. Revisamos si todo salió bien
       if (respuesta.ok) {
         alert('¡Usuario registrado con éxito en la base de datos!');
-        // Limpiamos los campos para que quede como nuevo
         setNombre('');
         setEmail('');
         setPassword('');
-        // Opcional: Manda al usuario directo a la pantalla de Login
-        cambiarVista(); 
+        cambiarVista(); // Manda al usuario al Login
       } else {
-        // Si el correo ya existe o falta algo, mostramos el error del backend
         alert('Error: ' + (datos.mensaje || 'No se pudo registrar'));
       }
 
@@ -47,9 +40,16 @@ const FormularioRegistro = ({ cambiarVista }) => {
     }
   };
 
+  // 3. Lo que se dibuja en la pantalla
   return (
     <div className="pantalla-completa">
       <form className="contenedor-formulario" onSubmit={manejarEnvio}>
+        
+        {/* BOTÓN PARA VOLVER AL CATÁLOGO (Nota: le puse type="button" para que no intente enviar el formulario por error) */}
+        <button type="button" onClick={volverCatalogo} className="btn-back" style={{ alignSelf: 'flex-start', marginBottom: '20px' }}>
+          ⬅ Volver al Catálogo
+        </button>
+
         <p className="texto-subtitulo">Start your journey</p>
         <h1 className="texto-titulo">Sign Up to InsideBox</h1> 
 
@@ -98,7 +98,6 @@ const FormularioRegistro = ({ cambiarVista }) => {
               onChange={(e) => setPassword(e.target.value)}
               required 
             />
-            {/* Icono del ojito a la derecha */}
             <FiEyeOff style={{position: 'absolute', right: '15px', color: '#adb5bd', cursor: 'pointer'}} />
           </div>
         </div>
@@ -106,7 +105,7 @@ const FormularioRegistro = ({ cambiarVista }) => {
         <button type="submit" className="boton-enviar">Sign Up</button> 
 
         <div className="contenedor-enlace">
-          <p>Already have an account? <span className="texto-enlace" onClick={cambiarVista}>Sign In</span></p>
+          <p>Already have an account? <span className="texto-enlace" onClick={cambiarVista} style={{cursor: 'pointer'}}>Sign In</span></p>
         </div>
       </form>
     </div>
