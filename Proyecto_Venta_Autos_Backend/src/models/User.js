@@ -38,7 +38,7 @@ userSchema.pre('save', async function(){//(next) {
     //next();
 });
 
-// Función que usaremos después en el Login para comparar contraseñas
+// Función que usaremos en el Login para comparar contraseñas
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };

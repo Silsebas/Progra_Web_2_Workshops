@@ -23,6 +23,8 @@ app.get('/', (req, res) => {
 // La URL final para registrarse será: http://localhost:4000/api/users/register
 app.use('/api/users', authRoutes);
 
+app.use('/api/vehicles', require('./routes/vehicleRoutes'));
+
 // 4. Definimos el puerto y encendemos el servidor
 // Usar el puerto del .env, si falla, usará el 4000
 const PORT = process.env.PORT || 4000; 
