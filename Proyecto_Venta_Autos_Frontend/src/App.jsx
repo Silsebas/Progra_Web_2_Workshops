@@ -8,11 +8,24 @@ import DetalleAuto from './components/DetalleAuto';
 import Inbox from './components/Inbox';
 
 function App() {
-  // 1. Iniciamos en el catálogo, como pide el requerimiento.
   const [vistaActual, setVistaActual] = useState('catalogo'); 
+  
+  // Creamos una memoria para guardar el auto al que le dimos clic
+  const [autoSeleccionado, setAutoSeleccionado] = useState(null);
 
-  // Función temporal para simular el ir al chat
+// Función para manejar compras y chats con token de seguridad
   const manejarAccionAuto = (accion) => {
+    // 1. Revisamos si el usuario tiene sesión iniciada
+    const token = localStorage.getItem('token');
+    
+    // 2. Si NO hay token, le avisamos y lo mandamos a Iniciar Sesión
+    if (!token) {
+      alert("Debes iniciar sesión o registrarte para poder comprar o chatear.");
+      setVistaActual('login'); // Lo redirigimos al login
+      return; // Cortamos la función aquí para que no avance
+    }
+
+    // 3. Si SÍ hay token, todo sigue normal
     if(accion === 'comprar') {
       alert("Generando Orden de Compra... Redirigiendo al Inbox.");
     } else {
@@ -23,29 +36,32 @@ function App() {
 
   return (
     <div>
-      {/* 2. Si la vista es el catálogo, le pasamos las funciones para ir a login/registro */}
         {vistaActual === 'catalogo' && (
         <Catalog 
           irALogin={() => setVistaActual('login')} 
           irARegistro={() => setVistaActual('registro')} 
           irAPublicar={() => setVistaActual('publicar')}
-          verDetalles={() => setVistaActual('detalle')}
+          // ✨ ¡CAMBIO AQUÍ! Recibimos el auto específico y lo guardamos antes de cambiar la vista
+          verDetalles={(autoQueClickeo) => {
+            setAutoSeleccionado(autoQueClickeo); // Guardamos el auto en la memoria
+            setVistaActual('detalle'); // Cambiamos la pantalla
+          }}
         /> 
         )}
 
-      {/* NUEVA VISTA: Detalles del Auto */}
+      {/* VISTA: Detalles del Auto */}
       {vistaActual === 'detalle' && (
         <DetalleAuto 
+          auto={autoSeleccionado} // Le damos al detalle el auto que guardamos
           volverCatalogo={() => setVistaActual('catalogo')}
           irAInbox={manejarAccionAuto}
         />
       )}
 
-      {/* 3. Vistas de autenticación */}
+      {/* Vistas de autenticación y demás */}
       {vistaActual === 'login' && (
         <FormularioLogin 
           cambiarVista={() => setVistaActual('registro')} 
-          // Es buena idea pasar una función para regresar al catálogo si se arrepienten
           volverCatalogo={() => setVistaActual('catalogo')} 
         />
       )}
@@ -61,7 +77,6 @@ function App() {
         <PublicarAuto volverCatalogo={() => setVistaActual('catalogo')} />
       )}
 
-      {/* NUEVA VISTA: Bandeja de Mensajes */}
       {vistaActual === 'inbox' && (
         <Inbox volverCatalogo={() => setVistaActual('catalogo')} />
       )}

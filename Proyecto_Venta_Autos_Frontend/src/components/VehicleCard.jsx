@@ -1,23 +1,30 @@
 import React from 'react';
 
-// Recibimos "verDetalles" como prop, que será la función que cambie la pantalla
-const VehicleCard = ({ verDetalles }) => {
+// Ahora la tarjeta recibe 'verDetalles' y también los datos del 'auto'
+const VehicleCard = ({ verDetalles, auto }) => {
   return (
     <div className="vehicle-card">
-      <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800" alt="Auto" className="vehicle-img" />
+      {/* Usamos la primera imagen del arreglo, o una por defecto si no tiene */}
+      <img 
+        src={auto.imagenes && auto.imagenes.length > 0 ? auto.imagenes[0] : "https://via.placeholder.com/800x500?text=Sin+Imagen"} 
+        alt={`${auto.marca} ${auto.modelo}`} 
+        className="vehicle-img" 
+      />
       
       <div className="vehicle-info">
-        <h4>Toyota Hilux 2021</h4>
-        <h3 className="price">$ 25,000</h3>
+        {/* Mostramos la marca y el modelo reales */}
+        <h4>{auto.marca} {auto.modelo} {auto.anio}</h4>
+        
+        {/* Mostramos el precio real formateado */}
+        <h3 className="price">$ {auto.precio.toLocaleString()}</h3>
         
         <ul className="details">
-          <li><strong>Motor:</strong> 2.8L</li>
-          <li><strong>Transmisión:</strong> Manual</li>
-          <li><strong>Kilometraje:</strong> 45,000 km</li>
+          <li><strong>Motor:</strong> {auto.motor}</li>
+          <li><strong>Transmisión:</strong> {auto.transmision}</li>
+          <li><strong>Kilometraje:</strong> {auto.kilometraje.toLocaleString()} km</li>
         </ul>
         
-        {/* Este botón activará la vista de detalles */}
-        <button onClick={verDetalles} className="btn-details">
+        <button onClick={() => verDetalles(auto)} className="btn-details">
           Ver Vehículo
         </button>
       </div>

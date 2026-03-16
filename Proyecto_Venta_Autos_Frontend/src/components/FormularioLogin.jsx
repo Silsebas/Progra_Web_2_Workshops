@@ -25,13 +25,22 @@ const FormularioLogin = ({ cambiarVista, volverCatalogo }) => {
 
       if (respuesta.ok) {
         alert('¡Login exitoso! Bienvenido');
-        console.log('Token recibido:', datos.token); 
-        
+        console.log('Token recibido:', datos.usuario.token); 
+
+        // MICRÓFONO 1: Ver qué nos dio el backend
+        //console.log("TOKEN RECIBIDO DEL BACKEND EXACTAMENTE ASÍ:", datos.usuario.token);
+        //console.log("USUARIO RECIBIDO DEL BACKEND EXACTAMENTE ASÍ:", datos.usuario.name);
+
+        // Guardamos el token y el usuario en la memoria del navegador
+        localStorage.setItem('token', datos.usuario.token);
+        localStorage.setItem('nombreUsuario', datos.usuario.name);
+        localStorage.setItem('idUsuario', datos.usuario.id);
+
         // Limpiamos los campos
         setEmail('');
         setPassword('');
         
-        // ¡Magia! Si el login es correcto, lo mandamos al catálogo automáticamente
+        // Si el login es correcto, lo mandamos al catálogo automáticamente
         volverCatalogo(); 
       } else {
         alert('Error: ' + (datos.mensaje || 'Credenciales incorrectas o usuario no registrado'));
