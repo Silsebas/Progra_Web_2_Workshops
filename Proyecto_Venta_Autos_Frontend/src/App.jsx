@@ -14,7 +14,8 @@ function App() {
   const [autoSeleccionado, setAutoSeleccionado] = useState(null);
 
 // Función para manejar compras y chats con token de seguridad
-  const manejarAccionAuto = (accion) => {
+ const manejarAccionAuto = async (accion) => { 
+
     // 1. Revisamos si el usuario tiene sesión iniciada
     const token = localStorage.getItem('token');
     
@@ -25,13 +26,53 @@ function App() {
       return; // Cortamos la función aquí para que no avance
     }
 
-    // 3. Si SÍ hay token, todo sigue normal
-    if(accion === 'comprar') {
-      alert("Generando Orden de Compra... Redirigiendo al Inbox.");
-    } else {
-      alert("Abriendo Chat con el vendedor... Redirigiendo al Inbox.");
+    // SI LA ACCIÓN ES SOLO 'VER', NOS VAMOS DIRECTO AL INBOX
+    if (accion === 'ver') {
+      setVistaActual('inbox');
+      return;
     }
-    setVistaActual('inbox');
+
+    // 3. Si SÍ hay token, todo sigue normal
+    // Definimos el mensaje inicial dependiendo de si es una compra o solo un interés
+    const esOrden = accion === 'comprar';
+    const mensajeInicial = esOrden 
+      ? `¡Hola! He generado una orden de compra por el ${autoSeleccionado.marca} ${autoSeleccionado.modelo}.`
+      : `¡Hola! Estoy interesado en tu ${autoSeleccionado.marca} ${autoSeleccionado.modelo}. ¿Sigue disponible?`;
+
+    try {
+      const respuesta = await fetch('http://localhost:4000/api/chats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          vehiculoId: autoSeleccionado._id,
+          vendedorId: autoSeleccionado.vendedor._id || autoSeleccionado.vendedor,
+          mensajeInicial: mensajeInicial,
+          esOrden: esOrden,
+          soloAbrir: true // Indicamos que solo queremos abrir el chat, no enviar un mensaje nuevo
+        })
+      });
+
+      // Obtenemos la respuesta del servidor
+      const datos = await respuesta.json();
+
+      if (respuesta.ok) {
+        // Si el chat es nuevo o se pudo enviar el mensaje, vamos al Inbox
+        setVistaActual('inbox');
+      } else if (respuesta.status === 400) {
+        // Si es error 400, significa que el chat ya existe. No mostramos error,
+        // simplemente redirigimos al usuario para que vea la conversación.
+        setVistaActual('inbox');
+      } else {
+        // Si es otro tipo de error (500, 404, etc.), ahí sí avisamos
+        alert("Error al iniciar chat: " + (datos.mensaje || "Error desconocido"));
+      }
+    } catch (error) {
+      console.error("Error en la conexión:", error);
+      alert("Hubo un problema de conexión con el servidor.");
+    }
   };
 
   return (

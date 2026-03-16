@@ -26,8 +26,12 @@ const Catalog = ({ irALogin, irARegistro, irAPublicar, verDetalles }) => {
         const respuesta = await fetch('http://localhost:4000/api/vehicles');
         const datos = await respuesta.json();
         
+        // Si el backend envía { vehiculos: [...] }, usamos datos.vehiculos
+        // Si envía solo [...], usamos datos
+        const listaReal = Array.isArray(datos) ? datos : (datos.vehiculos || []);
+
         // Guardamos los datos en la memoria
-        setVehiculos(datos);
+        setVehiculos(listaReal);
       } catch (error) {
         console.error('Error al conectar con el backend:', error);
       }

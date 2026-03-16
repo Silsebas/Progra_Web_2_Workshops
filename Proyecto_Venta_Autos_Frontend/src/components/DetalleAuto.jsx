@@ -51,10 +51,19 @@ const DetalleAuto = ({ auto, volverCatalogo, irAInbox }) => {
           <div style={{ marginTop: '30px', display: 'flex', gap: '15px' }}>
             {/* 4. El operador condicional para mostrar botones */}
             {esMiAuto ? (
-              // SI ES MI AUTO: Muestro botones de administrador
-              <div style={{ width: '100%', padding: '15px', backgroundColor: '#f8f9fa', border: '2px dashed #ccc', textAlign: 'center', borderRadius: '5px' }}>
-                <h3 style={{ color: '#555', margin: 0 }}> Esta es tu publicación</h3>
-                <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#777' }}>No puedes comprarte a ti mismo.</p>
+              // SI ES MI AUTO: Muestro botones de administrador y acceso al Inbox
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ padding: '15px', backgroundColor: '#f8f9fa', border: '2px dashed #ccc', textAlign: 'center', borderRadius: '5px' }}>
+                  <h3 style={{ color: '#555', margin: 0 }}>Esta es tu publicación</h3>
+                  <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#777' }}>Eres el vendedor de este vehículo.</p>
+                </div>
+                
+                {/* BOTÓN: Para que el vendedor pueda ir a ver sus chats */}
+                <button 
+                  onClick={() => irAInbox('ver')} 
+                  style={{ width: '100%', padding: '15px', backgroundColor: '#2c3e50', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1.1rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  📩 Ver Mensajes de este Auto
+                </button>
               </div>
             ) : (
               // SI NO ES MI AUTO: Muestro los botones de compra normales

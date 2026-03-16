@@ -1,8 +1,73 @@
-// src/components/Inbox.jsx
-import React from 'react';
-import '../styles/Inbox.css'; // Llamamos a los estilos nuevos
+import React, { useState, useEffect } from 'react';
+import '../styles/Inbox.css';
 
 const Inbox = ({ volverCatalogo }) => {
+  const [chats, setChats] = useState([]);
+  const [chatSeleccionado, setChatSeleccionado] = useState(null);
+  const [nuevoMensaje, setNuevoMensaje] = useState('');
+  const miId = localStorage.getItem('idUsuario');
+
+  // 1. Cargar todos los chats del usuario
+  useEffect(() => {
+    const obtenerChats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const respuesta = await fetch('http://localhost:4000/api/chats', {
+          headers: { 'x-auth-token': token }
+        });
+        const datos = await respuesta.json();
+        if (respuesta.ok) {
+          setChats(datos);
+          // Opcional: Seleccionar el primero por defecto
+          if (datos.length > 0) setChatSeleccionado(datos[0]);
+        }
+      } catch (error) {
+        console.error("Error al obtener chats:", error);
+      }
+    };
+    obtenerChats();
+  }, []);
+
+  // 2. Función para enviar un mensaje nuevo
+  const enviarMensaje = async () => {
+    // Validamos que el mensaje no esté vacío y que haya un chat seleccionado
+    if (!nuevoMensaje.trim() || !chatSeleccionado) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const respuesta = await fetch('http://localhost:4000/api/chats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          // Agregamos el chatId para que el backend sepa a qué conversación añadir el mensaje
+          chatId: chatSeleccionado._id,
+          vehiculoId: chatSeleccionado.vehiculo._id,
+          vendedorId: chatSeleccionado.vendedor._id,
+          mensajeInicial: nuevoMensaje
+        })
+      });
+
+      const datos = await respuesta.json();
+
+      if (respuesta.ok) {
+        // Actualizamos el chat seleccionado para ver el mensaje nuevo
+        setChatSeleccionado(datos);
+        // Actualizamos la lista general
+        setChats(chats.map(c => c._id === datos._id ? datos : c));
+        setNuevoMensaje('');
+      } else {
+        // Manejamos el error (por ejemplo, la regla de turnos del backend)
+        alert(datos.mensaje || "Error al enviar mensaje");
+      }
+    } catch (error) {
+      console.error("Error al enviar mensaje:", error);
+      alert("Error de conexión al enviar el mensaje.");
+    }
+  };
+
   return (
     <div className="inbox-wrapper">
       <div className="inbox-header">
@@ -11,62 +76,60 @@ const Inbox = ({ volverCatalogo }) => {
       </div>
 
       <div className="inbox-container">
-        {/* PANEL IZQUIERDO: Lista de Conversaciones */}
+        {/* PANEL IZQUIERDO: Lista de Conversaciones Reales */}
         <aside className="chat-sidebar">
-          <div className="chat-item active">
-            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=150" alt="Auto" className="chat-item-img"/>
-            <div className="chat-item-details">
-              <h4>Toyota Hilux 2021</h4>
-              <p>Vendedor: Carlos M.</p>
+          {chats.map(chat => (
+            <div 
+              key={chat._id} 
+              className={`chat-item ${chatSeleccionado?._id === chat._id ? 'active' : ''}`}
+              onClick={() => setChatSeleccionado(chat)}
+            >
+              <img 
+                src={chat.vehiculo.imagenes?.[0] || "https://via.placeholder.com/150"} 
+                alt="Auto" 
+                className="chat-item-img"
+              />
+              <div className="chat-item-details">
+                <h4>{chat.vehiculo.marca} {chat.vehiculo.modelo}</h4>
+                {/* Comparación de ID segura para mostrar Comprador o Vendedor */}
+                <p>{String(miId) === String(chat.vendedor._id) ? `Comprador: ${chat.comprador?.name}` : `Vendedor: ${chat.vendedor?.name}`}</p>
+              </div>
             </div>
-          </div>
-          <div className="chat-item">
-            <img src="https://via.placeholder.com/150/000000/FFFFFF/?text=Civic" alt="Auto" className="chat-item-img"/>
-            <div className="chat-item-details">
-              <h4>Honda Civic 2018</h4>
-              <p>Vendedor: Ana S.</p>
-            </div>
-          </div>
+          ))}
         </aside>
 
         {/* PANEL DERECHO: El Chat Activo */}
         <main className="chat-window">
-          <div className="chat-messages">
-            
-            {/* 1. Ejemplo de Mensaje Automático del Sistema (La orden de compra) */}
-            <div className="message system-message">
-              <div className="system-box">
-                <span className="system-icon">🛒</span>
-                <div>
-                  <strong>¡Orden de Compra Generada! #ORD-9982</strong>
-                  <p>Has indicado que quieres comprar este vehículo. El vendedor ha sido notificado.</p>
-                </div>
+          {chatSeleccionado ? (
+            <>
+              <div className="chat-messages">
+                {chatSeleccionado.mensajes.map((m, index) => (
+                  /* Comparamos el emisor con miId para decidir si el mensaje es 'sent' o 'received' */
+                  <div key={index} className={`message ${m.esOrdenCompra ? 'system-message' : (String(m.emisor) === String(miId) ? 'sent' : 'received')}`}>
+                    <div className={m.esOrdenCompra ? "system-box" : "message-bubble"}>
+                      {m.esOrdenCompra && <span className="system-icon">🛒</span>}
+                      <p>{m.texto}</p>
+                      {!m.esOrdenCompra && <span className="message-time">{new Date(m.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
 
-            {/* 2. Ejemplo de Mensaje Enviado (Tuyo) */}
-            <div className="message sent">
-              <div className="message-bubble">
-                <p>¡Hola Carlos! Ya generé la orden. ¿Cuándo puedo ir a ver el auto?</p>
-                <span className="message-time">10:30 AM</span>
+              <div className="chat-input-area">
+                <input 
+                  type="text" 
+                  placeholder="Escribe un mensaje..." 
+                  className="chat-input" 
+                  value={nuevoMensaje}
+                  onChange={(e) => setNuevoMensaje(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && enviarMensaje()}
+                />
+                <button className="btn-send" onClick={enviarMensaje}>Enviar</button>
               </div>
-            </div>
-
-            {/* 3. Ejemplo de Mensaje Recibido (Del Vendedor) */}
-            <div className="message received">
-              <div className="message-bubble">
-                <p>¡Hola Jordan! Claro que sí, gracias por tu interés. ¿Te parece bien mañana en la mañana?</p>
-                <span className="message-time">10:35 AM</span>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Área para escribir el mensaje */}
-          <div className="chat-input-area">
-            <input type="text" placeholder="Es tu turno de responder..." className="chat-input" />
-            <button className="btn-send">Enviar</button>
-          </div>
+            </>
+          ) : (
+            <div className="no-chat-selected">Selecciona una conversación para empezar</div>
+          )}
         </main>
       </div>
     </div>
