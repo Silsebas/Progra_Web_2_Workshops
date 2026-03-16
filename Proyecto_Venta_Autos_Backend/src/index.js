@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config(); // Le dice a Node que lea el archivo .env
 const connectDB = require('./config/db'); // Importa el archivo de conexión
 const authRoutes = require('./routes/authRoutes');// Importamos el archivo de rutas de autenticación
+const chatRoutes = require('./routes/chatRoutes');// Importamos el archivo de rutas de chat
 
 // 1. Inicializamos la aplicación
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json()); 
 // Hacer pública la carpeta de fotos
 app.use('/uploads', express.static('uploads'));
+app.use('/api/chats', chatRoutes);
 
 // 3. Ruta de prueba
 app.get('/', (req, res) => {
