@@ -11,6 +11,12 @@ exports.crearVehiculo = async (req, res) => {
             vendedor: req.usuario.id 
         });
 
+        // Si multer atajó una imagen, guardamos su ruta web
+        if (req.file) {
+            // Guardamos la ruta estática para que el frontend la pueda leer
+            nuevoVehiculo.imagenes = [`http://localhost:4000/uploads/${req.file.filename}`];
+        }
+
         await nuevoVehiculo.save();
         res.status(201).json({ mensaje: 'Vehículo publicado con éxito', vehiculo: nuevoVehiculo });
         

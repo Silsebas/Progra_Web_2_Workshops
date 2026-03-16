@@ -13,6 +13,8 @@ connectDB(); //
 // 2. Middlewares los intermediarios de las rutas, para procesar datos, manejar CORS, etc.
 app.use(cors()); 
 app.use(express.json()); 
+// Hacer pública la carpeta de fotos
+app.use('/uploads', express.static('uploads'));
 
 // 3. Ruta de prueba
 app.get('/', (req, res) => {
