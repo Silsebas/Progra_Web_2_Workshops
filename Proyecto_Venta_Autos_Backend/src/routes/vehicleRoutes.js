@@ -16,4 +16,15 @@ router.post('/', auth, upload.single('imagen'), vehicleController.crearVehiculo)
 // Esta queda libre para que cualquiera pueda ver el catálogo
 router.get('/', vehicleController.obtenerVehiculos);
 
+// Ruta PUT: http://localhost:4000/api/vehicles/:id/vendido (Para marcar como vendido)
+router.put('/:id/vendido', auth, vehicleController.marcarComoVendido)
+
+// En tu archivo de rutas de vehículos del backend
+router.delete('/:id', auth, vehicleController.eliminarVehiculo);
+
+// src/routes/vehicleRoutes.js
+
+// 1. Ruta para actualizar datos generales (Editar)
+router.put('/:id', auth, upload.single('imagen'), vehicleController.actualizarVehiculo);
+
 module.exports = router;

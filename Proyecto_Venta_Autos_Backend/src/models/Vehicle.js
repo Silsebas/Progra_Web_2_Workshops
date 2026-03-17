@@ -57,6 +57,11 @@ const vehicleSchema = new mongoose.Schema({
   fechaPublicacion: {
     type: Date,
     default: Date.now
+  },
+  estado: {
+    type: String,
+    enum: ['disponible', 'vendido'],
+    default: 'disponible'
   }
 });
 
