@@ -13,6 +13,15 @@ function App() {
   // Creamos una memoria para guardar el auto al que le dimos clic
   const [autoSeleccionado, setAutoSeleccionado] = useState(null);
 
+  // Añade este estado para guardar qué auto estamos editando
+  const [autoAEditar, setAutoAEditar] = useState(null);
+
+// Función para activar la edición
+const prepararEdicion = (auto) => {
+  setAutoAEditar(auto);
+  setVistaActual('publicar'); // Reutilizamos la vista de publicar
+};
+
 // Función para manejar compras y chats con token de seguridad
  const manejarAccionAuto = async (accion) => { 
 
@@ -82,7 +91,7 @@ function App() {
           irALogin={() => setVistaActual('login')} 
           irARegistro={() => setVistaActual('registro')} 
           irAPublicar={() => setVistaActual('publicar')}
-          // ✨ ¡CAMBIO AQUÍ! Recibimos el auto específico y lo guardamos antes de cambiar la vista
+          // Recibimos el auto específico y lo guardamos antes de cambiar la vista
           verDetalles={(autoQueClickeo) => {
             setAutoSeleccionado(autoQueClickeo); // Guardamos el auto en la memoria
             setVistaActual('detalle'); // Cambiamos la pantalla
@@ -96,6 +105,7 @@ function App() {
           auto={autoSeleccionado} // Le damos al detalle el auto que guardamos
           volverCatalogo={() => setVistaActual('catalogo')}
           irAInbox={manejarAccionAuto}
+          prepararEdicion={prepararEdicion} // Le pasamos la función para preparar la edición
         />
       )}
 
@@ -115,7 +125,14 @@ function App() {
       )}
       
       {vistaActual === 'publicar' && (
-        <PublicarAuto volverCatalogo={() => setVistaActual('catalogo')} />
+        <PublicarAuto 
+          // Le damos la función para volver al catálogo y limpiar el autoAEditar cuando salgamos
+          volverCatalogo={() => {
+            setVistaActual('catalogo');
+            setAutoAEditar(null); // Limpiamos el auto al salir
+          }} 
+          autoAEditar={autoAEditar} // Pasamos el auto que queremos editar
+        />
       )}
 
       {vistaActual === 'inbox' && (

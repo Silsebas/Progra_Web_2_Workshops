@@ -1,37 +1,30 @@
-// src/components/PublicarAuto.jsx
 import React, { useState } from 'react';
 import '../styles/PublicarAuto.css';
 
-const PublicarAuto = ({ volverCatalogo }) => {
-  const [marca, setMarca] = useState('');
-  const [modelo, setModelo] = useState('');
-  const [anio, setAnio] = useState('');
-  const [precio, setPrecio] = useState('');
-  const [kilometraje, setKilometraje] = useState('');
-  const [motor, setMotor] = useState('');
-  const [combustible, setCombustible] = useState('Gasolina');
-  const [transmision, setTransmision] = useState('Manual');
-  const [descripcion, setDescripcion] = useState('');
-  
-  // 1. Nuevo estado para guardar la imagen seleccionada
+//Recibimos autoAEditar como prop
+const PublicarAuto = ({ volverCatalogo, autoAEditar }) => {
+  // i autoAEditar existe, cargamos sus valores iniciales
+  const [marca, setMarca] = useState(autoAEditar ? autoAEditar.marca : '');
+  const [modelo, setModelo] = useState(autoAEditar ? autoAEditar.modelo : '');
+  const [anio, setAnio] = useState(autoAEditar ? autoAEditar.anio : '');
+  const [precio, setPrecio] = useState(autoAEditar ? autoAEditar.precio : '');
+  const [kilometraje, setKilometraje] = useState(autoAEditar ? autoAEditar.kilometraje : '');
+  const [motor, setMotor] = useState(autoAEditar ? autoAEditar.motor : '');
+  const [combustible, setCombustible] = useState(autoAEditar ? autoAEditar.combustible : 'Gasolina');
+  const [transmision, setTransmision] = useState(autoAEditar ? autoAEditar.transmision : 'Manual');
+  const [descripcion, setDescripcion] = useState(autoAEditar ? autoAEditar.descripcion : '');
   const [imagen, setImagen] = useState(null);
 
   const manejarEnvio = async (e) => {
     e.preventDefault(); 
-
     const token = localStorage.getItem('token');
     
-    // MICRÓFONO 2: Ver qué sacamos del bolsillo
-    // console.log("TOKEN QUE ESTAMOS A PUNTO DE ENVIAR:", token);
-
-    // 2. Buscamos el Token en el bolsillo del navegador
-   // const token = localStorage.getItem('token');
     if (!token) {
       alert('¡Debes iniciar sesión para poder publicar un auto!');
       return; 
     }
 
-    // 3. Empacamos todo en un FormData  para enviar archivos al backend
+    // 3. Empacamos todo en un FormData
     const formData = new FormData();
     formData.append('marca', marca);
     formData.append('modelo', modelo);
@@ -43,29 +36,31 @@ const PublicarAuto = ({ volverCatalogo }) => {
     formData.append('transmision', transmision);
     formData.append('descripcion', descripcion);
     
-    // Si el usuario seleccionó una imagen, la agregamos a la caja
     if (imagen) {
       formData.append('imagen', imagen); 
     }
 
     try {
-      // 4. Enviamos la caja al backend
-      const respuesta = await fetch('http://localhost:4000/api/vehicles', {
-        method: 'POST',
+      // COORDENADA: Lógica dinámica de URL y Método
+      const metodo = autoAEditar ? 'PUT' : 'POST';
+      const url = autoAEditar 
+        ? `http://localhost:4000/api/vehicles/${autoAEditar._id}` 
+        : 'http://localhost:4000/api/vehicles';
+
+      const respuesta = await fetch(url, {
+        method: metodo,
         headers: {
-          'x-auth-token': token // Presentamos el Token para que el backend sepa quién es el vendedor
-          // OJO: Cuando usamos FormData, NO ponemos 'Content-Type': 'application/json'
-          // El navegador lo hace automáticamente y le pone el tipo correcto para archivos
+          'x-auth-token': token 
         },
         body: formData
       });
 
       if (respuesta.ok) {
-        alert('¡Vehículo publicado con éxito!');
-        volverCatalogo(); // Regresamos al catálogo
+        alert(autoAEditar ? '¡Vehículo actualizado!' : '¡Vehículo publicado con éxito!');
+        volverCatalogo(); 
       } else {
         const datos = await respuesta.json();
-        alert('Error: ' + (datos.mensaje || 'Hubo un problema al publicar'));
+        alert('Error: ' + (datos.mensaje || 'Hubo un problema'));
       }
     } catch (error) {
       console.error('Error al enviar:', error);
@@ -80,11 +75,11 @@ const PublicarAuto = ({ volverCatalogo }) => {
           ⬅ Volver al Catálogo
         </button>
 
-        <h2>Publicar Nuevo Vehículo</h2>
-        <p>Ingresa los detalles del auto que deseas vender.</p>
+        {/* COORDENADA: Título dinámico */}
+        <h2>{autoAEditar ? 'Editar Vehículo' : 'Publicar Nuevo Vehículo'}</h2>
+        <p>{autoAEditar ? 'Modifica los datos de tu auto.' : 'Ingresa los detalles del auto que deseas vender.'}</p>
 
         <form onSubmit={manejarEnvio} className="formulario-grid">
-          
           <div className="campo">
             <label>Marca</label>
             <input type="text" placeholder="Ej. Toyota" required value={marca} onChange={(e) => setMarca(e.target.value)} />
@@ -135,12 +130,11 @@ const PublicarAuto = ({ volverCatalogo }) => {
 
           <div className="campo descripcion-auto">
             <label>Descripción</label>
-            <textarea rows="4" placeholder="Describe el estado del auto, extras, etc." required value={descripcion} onChange={(e) => setDescripcion(e.target.value)}></textarea>
+            <textarea rows="4" placeholder="Describe el estado del auto..." required value={descripcion} onChange={(e) => setDescripcion(e.target.value)}></textarea>
           </div>
 
-          {/*Campo para subir la imagen */}
           <div className="campo descripcion-auto">
-            <label>Foto del Vehículo</label>
+            <label>Foto (Opcional si ya tiene)</label>
             <input 
               type="file" 
               accept="image/*" 
@@ -149,7 +143,9 @@ const PublicarAuto = ({ volverCatalogo }) => {
             />
           </div>
 
-          <button type="submit" className="btn-publicar">Publicar Vehículo</button>
+          <button type="submit" className="btn-publicar">
+            {autoAEditar ? 'Guardar Cambios' : 'Publicar Vehículo'}
+          </button>
         </form>
       </div>
     </div>

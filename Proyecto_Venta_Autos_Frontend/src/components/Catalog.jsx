@@ -7,6 +7,9 @@ const Catalog = ({ irALogin, irARegistro, irAPublicar, verDetalles }) => {
   // 1. Creamos un espacio en la memoria para guardar los autos que vengan del backend
   const [vehiculos, setVehiculos] = useState([]);
 
+  // 2. Creamos un estado para manejar la paginación 
+  const [paginacion, setPaginacion] = useState({ actual: 1, total: 1 });
+
   // Revisamos si hay un token guardado para saber si el usuario está logueado
   const token = localStorage.getItem('token');
   const nombreUsuario = localStorage.getItem('nombreUsuario');
@@ -20,23 +23,30 @@ const Catalog = ({ irALogin, irARegistro, irAPublicar, verDetalles }) => {
   };
 
   // 2. Usamos useEffect para ir a buscar los autos apenas cargue la página
-  useEffect(() => {
-    const obtenerAutos = async () => {
-      try {
-        const respuesta = await fetch('http://localhost:4000/api/vehicles');
-        const datos = await respuesta.json();
-        
-        // Si el backend envía { vehiculos: [...] }, usamos datos.vehiculos
-        // Si envía solo [...], usamos datos
-        const listaReal = Array.isArray(datos) ? datos : (datos.vehiculos || []);
-
-        // Guardamos los datos en la memoria
-        setVehiculos(listaReal);
-      } catch (error) {
-        console.error('Error al conectar con el backend:', error);
+  //Sacamos la función afuera para que el Sidebar pueda usarla
+  // Ahora acepta un objeto de "filtros"
+  const obtenerAutos = async (filtros = {}) => {
+    try {
+      // Convertimos el objeto {marca: 'Toyota'} en texto '?marca=Toyota'
+      const queryParams = new URLSearchParams(filtros).toString();
+      
+      const respuesta = await fetch(`http://localhost:4000/api/vehicles?${queryParams}`);
+      const datos = await respuesta.json();
+      
+      // Ajustamos la lectura porque ahora el backend responde con un objeto
+      const listaReal = datos.vehiculos || [];
+      setVehiculos(listaReal);
+      
+      // Guardamos info de la paginación
+      if (datos.totalPaginas) {
+        setPaginacion({ actual: datos.paginaActual, total: datos.totalPaginas });
       }
-    };
-
+    } catch (error) {
+      console.error('Error al conectar con el backend:', error);
+    }
+  };
+  
+  useEffect(() => {
     obtenerAutos();
   }, []); // Los corchetes vacíos significan que esto solo se ejecuta una vez al inicio
 
@@ -45,7 +55,7 @@ const Catalog = ({ irALogin, irARegistro, irAPublicar, verDetalles }) => {
       <header className="catalog-header">
         <h1>AutoMarket</h1>
         <div className="auth-buttons">
-{token ? (
+          {token ? (
             // SI ESTÁ LOGUEADO: Mostramos Publicar, su Nombre y el botón de Cerrar Sesión
             <>
               <button onClick={irAPublicar} className="btn-register" style={{backgroundColor: '#2e7d32', marginRight: '10px'}}>
@@ -76,7 +86,8 @@ const Catalog = ({ irALogin, irARegistro, irAPublicar, verDetalles }) => {
       </header>
 
       <div className="catalog-container">
-        <Sidebar />
+        {/* Le pasamos la función al Sidebar */}
+        <Sidebar aplicarFiltros={obtenerAutos} />
         
         <main className="catalog-main">
           <h2>Vehículos Destacados</h2>
@@ -87,14 +98,39 @@ const Catalog = ({ irALogin, irARegistro, irAPublicar, verDetalles }) => {
               <p>No hay vehículos publicados todavía.</p>
             ) : (
               vehiculos.map((auto) => (
-                <VehicleCard 
-                  key={auto._id} 
+                <div key={auto._id} style={{ opacity: auto.estado === 'vendido' ? 0.6 : 1, position: 'relative' }}>
+                  {auto.estado === 'vendido' && (
+                    <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'black', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', zIndex: 2, fontWeight: 'bold' }}>
+                      VENDIDO
+                </div>
+                  )}
+                 <VehicleCard 
+                  //key={auto._id} 
                   auto={auto} 
                   verDetalles={verDetalles} 
                 />
+                </div>
               ))
             )}
           </div>
+        {/* Botones de Paginación */}
+          {paginacion.total > 1 && (
+            <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button 
+                disabled={paginacion.actual === 1}
+                onClick={() => obtenerAutos({ pagina: paginacion.actual - 1 })}
+              >
+                Anterior
+              </button>
+              <span>Página {paginacion.actual} de {paginacion.total}</span>
+              <button 
+                disabled={paginacion.actual === paginacion.total}
+                onClick={() => obtenerAutos({ pagina: paginacion.actual + 1 })}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}  
         </main>
       </div>
     </div>
