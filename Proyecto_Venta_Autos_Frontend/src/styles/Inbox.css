@@ -1,3 +1,4 @@
+/* Inbox.css */
 .inbox-wrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -80,6 +81,9 @@
   padding: 12px 16px;
   border-radius: 8px;
   position: relative;
+  /* Agregamos esto para que la hora se vaya al fondo */
+  display: flex;
+  flex-direction: column; 
 }
 
 .message.sent .message-bubble {
@@ -97,11 +101,11 @@
 
 .message-bubble p { margin: 0; }
 .message-time {
-  font-size: 0.75rem;
-  opacity: 0.8;
-  display: block;
-  text-align: right;
-  margin-top: 5px;
+  font-size: 0.70rem; /* Un pelín más pequeña */
+  opacity: 0.6;       /* Más sutil */
+  margin-top: 4px;
+  align-self: flex-end; /* La empuja a la derecha de la burbuja */
+  color: inherit;      /* Para que en el azul se vea blanca y en el blanco oscura */
 }
 
 /* Mensaje del Sistema */
